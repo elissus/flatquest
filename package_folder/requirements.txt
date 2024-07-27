@@ -4,13 +4,8 @@ overpy
 
 # geocoding
 geopy
+geopandas
+shapely
 
 # CLI
 argparse
-
-# API
-fastapi
-uvicorn
-
-#.env
-python-dotenv
