@@ -11,3 +11,8 @@ python-dotenv
 # Python
 pandas
 numpy
+
+# GEO
+requests
+overpy
+geopy
