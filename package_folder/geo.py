@@ -31,6 +31,30 @@ def calculate_distance(coord1, coord2):
     return geodesic(coord1, coord2).kilometers
 
 
+def encode_density(place_type, density):
+    density_ranges = {
+        'restaurant': {'H': 20, 'M': 10, 'L': 5},
+        'bar': {'H': 20, 'M': 5, 'L': 0},
+        'gym': {'H': 5, 'M': 3, 'L': 0},
+        'park': {'H': 3, 'M': 2, 'L': 0},
+        'cafe': {'H': 20, 'M': 10, 'L': 0},
+        'hospital': {'H': 2, 'M': 1, 'L': 0},
+        'school': {'H': 2, 'M': 1, 'L': 0},
+        'transit': {'H': 2, 'M': 1, 'L': 0}
+    }
+
+    ranges = density_ranges.get(place_type.lower())
+    if not ranges:
+        return 'N/A'
+
+    if density > ranges['H']:
+        return 'High'
+    elif density > ranges['M']:
+        return 'Medium'
+    else:
+        return 'Low'
+
+
 # function to places of a given type within a radius of a given address
 def find_nearby_places(address:str, place_type:str, radius:int=500):
     '''Function to find places of a specific type near a given address and radius in meters.
@@ -49,7 +73,8 @@ def find_nearby_places(address:str, place_type:str, radius:int=500):
         'park': '[leisure=park]',
         'cafe': '[amenity=cafe]',
         'hospital': '[amenity=hospital]',
-        'school': '[amenity=school]'
+        'school': '[amenity=school]',
+        'transit': '[railway=station]'
     }
 
     # Get the appropriate OSM tag for the given place type
@@ -119,24 +144,29 @@ def find_nearby_places(address:str, place_type:str, radius:int=500):
         average_distance = 0
 
     # Calculate the area of the search circle in square meters
-    area = math.pi * (radius ** 2)
+    area = math.pi * ((radius/1000)** 2)
 
     # Calculate the density score
     if count_of_places > 0:
-        inverse_distance_sum = sum([1 / place['distance'] for place in places_sorted if place['distance'] > 0])
-        density_score = (count_of_places / area) * inverse_distance_sum
+        #inverse_distance_sum = sum([1 / place['distance']/1000 for place in places_sorted if place['distance'] > 0])
+        density = (count_of_places / area)
     else:
-        density_score = 0
+        density = 0
+
+    # encode density
+    encoded_density = encode_density(place_type, density)
+
+
 
     print(places_sorted)
     print(f"Count of places: {count_of_places}")
     print(f"Area: {area}")
-    print(f"Inverse distance sum: {inverse_distance_sum}")
+    #print(f"Inverse distance sum: {inverse_distance_sum}")
     print(f"Average distance: {average_distance:.2f} kilometers")
-    print(f"Density Score: {density_score:.2f}")
+    print(f"Density: {density} per square kilometer")
+    print(f"Encoded density: {encoded_density}")
 
-    return places_sorted, count_of_places, average_distance, density_score  # pd.DataFrame(places_sorted)
-
+    return pd.DataFrame(places_sorted), density, average_distance
 
 def main():
     parser = argparse.ArgumentParser(description="Find nearby places of a specific type.")
