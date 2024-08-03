@@ -4,7 +4,7 @@ from geopy.distance import geodesic
 import pandas as pd
 import argparse
 import math
-from google.cloud import bigquery
+#from google.cloud import bigquery
 
 
 
@@ -204,8 +204,22 @@ def query(rent, area, rooms, balcony):
     rows = [dict(row) for row in results]
     return rows
 
+# Function to query a csv based Dataframe of the flats.
+def find_best_matches(df, no_rooms, total_rent, living_space, balcony, top_n=10):
+    # Calculate similarity score for each entry
+    df['similarity_score'] = (abs(df['noRooms'] - no_rooms) +
+                              abs(df['totalRent'] - total_rent) / total_rent +
+                              abs(df['livingSpace'] - living_space) / living_space +
+                              (df['balcony'] != balcony).astype(int))
 
+    # Sort the DataFrame by similarity score
+    sorted_df = df.sort_values('similarity_score')
 
+    # Return the top N entries or as many as available
+    best_matches = sorted_df.head(min(top_n, len(sorted_df)))
+
+    # Drop the similarity score column for the final output
+    return best_matches.drop(columns=['similarity_score'])
 
 
 

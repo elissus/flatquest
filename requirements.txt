@@ -19,3 +19,12 @@ geopy
 
 #BQ
 google-cloud-bigquery
+
+# Frontend
+streamlit
+decimal
+folium
+streamlit_folium
+requests
+os
+st_aggrid
