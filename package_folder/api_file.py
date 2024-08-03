@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 import pickle
-from package_folder.utils import from_number_to_flower
+from geo import find_nearby_places
 
 app = FastAPI()
 
@@ -21,4 +21,15 @@ def predict(sepal_length,
 
     pretty_prediction = from_number_to_flower(float(prediction[0]))
 
+    print(f"Hello world!")
+
     return {"prediction": pretty_prediction}
+
+@app.get("/search")
+def flat_search(address,
+                place_type,
+                radius):
+
+    radius= int(radius)
+
+    return find_nearby_places(address, place_type, int(radius))
