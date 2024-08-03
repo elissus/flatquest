@@ -16,3 +16,6 @@ numpy
 requests
 overpy
 geopy
+
+#BQ
+google-cloud-bigquery
