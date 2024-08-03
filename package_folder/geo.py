@@ -1,25 +1,58 @@
 import overpy
-from geopy.geocoders import Photon
+from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
 import pandas as pd
 import argparse
+import math
 
 
 # function to geocode an address into latitude and longitude
-def geocode_address(address:str):
+def geocode_address(address: str, timeout: int = 10):
     '''Receives an address with street name, number, zip code, city and country
     and returns latitude and longitude'''
-    geolocator = Photon(user_agent="measurements")
-    location = geolocator.geocode(address)
-    latitude = location.latitude
-    longitude = location.longitude
-    return latitude, longitude
+    geolocator = Nominatim(user_agent="measurements", timeout=timeout)
+    try:
+        location = geolocator.geocode(address)
+        if location:
+            latitude = location.latitude
+            longitude = location.longitude
+            return latitude, longitude
+        else:
+            print(f"Geocoding failed for address: {address}")
+            return None, None
+    except GeocoderTimedOut:
+        print(f"Geocoding timed out for address: {address}")
+        return None, None
 
 
 # function to calculate the distance in meters between two coordinates
 def calculate_distance(coord1, coord2):
     '''Receives two coordinates and returns the distance between them in meters'''
-    return geodesic(coord1, coord2).meters
+    return geodesic(coord1, coord2).kilometers
+
+
+def encode_density(place_type, density):
+    density_ranges = {
+        'restaurant': {'H': 20, 'M': 10, 'L': 5},
+        'bar': {'H': 20, 'M': 5, 'L': 0},
+        'gym': {'H': 5, 'M': 3, 'L': 0},
+        'park': {'H': 3, 'M': 2, 'L': 0},
+        'cafe': {'H': 20, 'M': 10, 'L': 0},
+        'hospital': {'H': 2, 'M': 1, 'L': 0},
+        'school': {'H': 2, 'M': 1, 'L': 0},
+        'transit': {'H': 2, 'M': 1, 'L': 0}
+    }
+
+    ranges = density_ranges.get(place_type.lower())
+    if not ranges:
+        return 'N/A'
+
+    if density > ranges['H']:
+        return 'High'
+    elif density > ranges['M']:
+        return 'Medium'
+    else:
+        return 'Low'
 
 
 # function to places of a given type within a radius of a given address
@@ -40,7 +73,8 @@ def find_nearby_places(address:str, place_type:str, radius:int=500):
         'park': '[leisure=park]',
         'cafe': '[amenity=cafe]',
         'hospital': '[amenity=hospital]',
-        'school': '[amenity=school]'
+        'school': '[amenity=school]',
+        'transit': '[railway=station]'
     }
 
     # Get the appropriate OSM tag for the given place type
@@ -100,9 +134,39 @@ def find_nearby_places(address:str, place_type:str, radius:int=500):
 
     # Sort the list by distance
     places_sorted = sorted(places, key=lambda x: x['distance'])
-    print(places_sorted)
 
-    return places_sorted #pd.DataFrame(places_sorted)
+    # Calculate the count of places and the average distance
+    count_of_places = len(places_sorted)
+
+    if count_of_places > 0:
+        average_distance = sum([place['distance'] for place in places_sorted]) / count_of_places
+    else:
+        average_distance = 0
+
+    # Calculate the area of the search circle in square meters
+    area = math.pi * ((radius/1000)** 2)
+
+    # Calculate the density score
+    if count_of_places > 0:
+        #inverse_distance_sum = sum([1 / place['distance']/1000 for place in places_sorted if place['distance'] > 0])
+        density = (count_of_places / area)
+    else:
+        density = 0
+
+    # encode density
+    encoded_density = encode_density(place_type, density)
+
+
+
+    print(places_sorted)
+    print(f"Count of places: {count_of_places}")
+    print(f"Area: {area}")
+    #print(f"Inverse distance sum: {inverse_distance_sum}")
+    print(f"Average distance: {average_distance:.2f} kilometers")
+    print(f"Density: {density} per square kilometer")
+    print(f"Encoded density: {encoded_density}")
+
+    return pd.DataFrame(places_sorted), density, average_distance
 
 def main():
     parser = argparse.ArgumentParser(description="Find nearby places of a specific type.")
@@ -113,15 +177,10 @@ def main():
     args = parser.parse_args()
 
     try:
-        nearby_places = find_nearby_places(args.address, args.place_type, args.radius)
-        for place in nearby_places:
-            print(f"Place: {place['name']}, Lat: {place['latitude']}, Lon: {place['longitude']}, Distance: {place['distance']:.6f} degrees")
-            print("Tags:")
-            for key, value in place['tags'].items():
-                print(f"  {key}: {value}")
-            print()
+       find_nearby_places(args.address, args.place_type, args.radius)
     except ValueError as e:
         print(e)
+
 
 if __name__ == "__main__":
     main()
