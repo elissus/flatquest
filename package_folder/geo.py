@@ -4,6 +4,8 @@ from geopy.distance import geodesic
 import pandas as pd
 import argparse
 import math
+from google.cloud import bigquery
+
 
 
 # function to geocode an address into latitude and longitude
@@ -164,6 +166,50 @@ def find_nearby_places(address:str, place_type:str, radius:int=500):
     print(f"Encoded density: {encoded_density}")
 
     return pd.DataFrame(places_sorted) #density, average_distance
+
+dataset = '`flatquest-430519.flatquest_dataset.df_berlin_cleaneed`'
+rent = 1000
+area = 80
+rooms = 2
+balcony = 'True'
+result_limit = 10
+
+def query(rent, area, rooms, balcony):
+
+    client = bigquery.Client()
+
+    query = f"""
+    with data as (
+    SELECT
+        description as description,
+        fullAddress as address,
+         totalRent as rent,
+        livingSpace as area,
+        noRooms as rooms,
+        balcony as balcony
+
+        FROM `flatquest-430519.flatquest_dataset.df_berlin_cleaneed`
+    )
+    select *
+    from data
+    where rent <= {rent}
+    and area >= {area}
+    and rooms >= {rooms}
+    and balcony = {balcony}
+    limit {result_limit}
+    """
+
+    query_job = client.query(query)
+    results = query_job.result()
+    rows = [dict(row) for row in results]
+    return rows
+
+
+
+
+
+
+
 
 def main():
     parser = argparse.ArgumentParser(description="Find nearby places of a specific type.")
