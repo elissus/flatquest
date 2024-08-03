@@ -55,13 +55,13 @@ show_results = False
 # Button to trigger the API call
 if st.button('Submit'):
     # Prepare the data for the API call
-    payload = {
+    requested_categories = {
         'selected_categories': selected_categories,
         'category_density': category_density
     }
 
     # Make the API call (replace 'http://example.com/api' with your actual API endpoint)
-    response = requests.post('http://example.com/api', json=payload)
+    response = requests.post('http://example.com/api', json=requested_categories)
 
     # Display the API response
     if response.status_code == 200:
