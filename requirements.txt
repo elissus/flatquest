@@ -16,3 +16,13 @@ numpy
 requests
 overpy
 geopy
+
+
+# Frontend
+streamlit
+decimal
+folium
+streamlit_folium
+requests
+os
+st_aggrid
