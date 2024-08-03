@@ -156,17 +156,14 @@ def find_nearby_places(address:str, place_type:str, radius:int=500):
     # encode density
     encoded_density = encode_density(place_type, density)
 
-
-
     print(places_sorted)
     print(f"Count of places: {count_of_places}")
     print(f"Area: {area}")
-    #print(f"Inverse distance sum: {inverse_distance_sum}")
     print(f"Average distance: {average_distance:.2f} kilometers")
     print(f"Density: {density} per square kilometer")
     print(f"Encoded density: {encoded_density}")
 
-    return pd.DataFrame(places_sorted), density, average_distance
+    return pd.DataFrame(places_sorted) #density, average_distance
 
 def main():
     parser = argparse.ArgumentParser(description="Find nearby places of a specific type.")
