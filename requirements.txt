@@ -11,6 +11,8 @@ python-dotenv
 # Python
 pandas
 numpy
+matplotlib.pyplot
+seaborn
 
 # GEO
 requests
