@@ -11,7 +11,7 @@ python-dotenv
 # Python
 pandas
 numpy
-matplotlib.pyplot
+matplotlib
 seaborn
 
 # GEO
@@ -19,14 +19,7 @@ requests
 overpy
 geopy
 
-#BQ
-google-cloud-bigquery
-
 # Frontend
 streamlit
-decimal
 folium
 streamlit_folium
-requests
-os
-st_aggrid
