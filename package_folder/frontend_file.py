@@ -7,7 +7,7 @@ from streamlit_folium import st_folium
 import requests
 import os
 from st_aggrid import AgGrid, GridOptionsBuilder
-from geo import find_best_matches
+import geo
 
 
 # Get the directory of the current script
@@ -33,6 +33,12 @@ cities = ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix",
 # Convert list to DataFrame
 cities_df = pd.DataFrame(cities, columns=["City"])
 
+#Defining empty variables to prevent Streamlit from printing Error Messages for not existing variables
+results = []
+result = {}
+addresses =[]
+requested_categories = {}
+selected_result = []
 
 # Create an input field with autocomplete
 def city_autocomplete():
@@ -136,11 +142,11 @@ for i in range(0, len(categories), 3):
 # Initialize a flag to control visibility of results and map
 show_results = False
 
-df = pd.read_csv("package_folder/api_call_df.csv")
+df = pd.read_csv("/home/hsinbyushin/code/elissus/flatquest/notebooks/berlin_cleaned.csv")
 
 # Button to trigger the API call
 if st.button('Submit'):
-    first_query = find_best_matches(df, no_rooms, total_rent, living_space, balcony, top_n=10)
+    first_query = geo.find_best_matches(df, no_rooms, total_rent, living_space, balcony, top_n=10)
     st.write(first_query)
 
     # Prepare the data for the API call
@@ -149,82 +155,111 @@ if st.button('Submit'):
         'category_density': category_density
     }
 
-    # Make the API call (replace 'http://example.com/api' with your actual API endpoint)
-    response = requests.post('http://example.com/api', json=requested_categories)
+    addresses = first_query['fullAddress'].tolist()
 
+# Define categories and prepare results storage
+results = []
+
+# Iterate over each address
+for address in addresses:
+    # List to hold results for different categories for the current address
+    address_results = []
+
+    # Iterate over each category
+    for category in selected_categories:
+        # Call the API and store the results for the current category
+        category_results = geo.find_nearby_places(address, category)
+        address_results.append(category_results)
+
+    # Store the results for the current address
+    results.append(address_results)
+
+    show_results = True
     # Display the API response
-    if response.status_code == 200:
-        st.success("API call successful!")
-        st.json(response.json())
-        show_results = True
-    else:
-        st.error(f"API call failed with status code {response.status_code}")
+    #if response.status_code == 200:
+     #   st.success("API call successful!")
+      #  st.json(response.json())
+      #  show_results = True
+    #else:
+    #    st.error(f"API call failed with status code {response.status_code}")
+
+# Flag to show results
+show_results = True
+
 
 # Only display results and map if show_results is True
 if show_results:
     # Example list of dictionaries for different results
-    results = {
-        'Result 1': [
-            {'name': 'Bodystreet', 'latitude': Decimal('52.5079287'), 'longitude': Decimal('13.3917379'), 'address': 'Street 1, City', 'category': 'gym'},
-            {'name': 'McFit', 'latitude': Decimal('52.5106479'), 'longitude': Decimal('13.3974279'), 'address': 'Street 2, City', 'category': 'gym'},
-            {'name': 'Holmes Place', 'latitude': Decimal('52.5123998'), 'longitude': Decimal('13.3908216'), 'address': 'Street 3, City', 'category': 'gym'},
-        ],
-        'Result 2': [
-            {'name': 'Restaurant A', 'latitude': Decimal('52.5099287'), 'longitude': Decimal('13.3957379'), 'address': 'Street 4, City', 'category': 'restaurant'},
-            {'name': 'School B', 'latitude': Decimal('52.5086479'), 'longitude': Decimal('13.3934279'), 'address': 'Street 5, City', 'category': 'school'}
-        ],
-        # Add more results as needed...
-    }
+    # Initialisiere ein leeres Dictionary, um die Ergebnisse zu speichern
+    final_results = {}
 
-    # Convert each list of dictionaries to a DataFrame
-    dataframes = {key: pd.DataFrame(value) for key, value in results.items()}
+   # Iteriere über die Adressen
+    for i in range(len(addresses)):
+        address_results = []  # Liste zur Speicherung der Ergebnisse für die aktuelle Adresse
+        for j in range(len(selected_categories)):  # Iteriere über die Kategorien
+            if len(results[i]) > j:  # Überprüfe, ob die Ergebnisse für die Kategorie existieren
+                if 'name' in results[i][j]:  # Überprüfe, ob der Schlüssel 'name' existiert
+                    for k in range(len(results[i][j]['name'])):  # Iteriere über die Points of Interest
+                        poi = {
+                            'name': results[i][j]['name'][k],
+                            'latitude': results[i][j]['latitude'][k],
+                            'longitude': results[i][j]['longitude'][k],
+                            'category': selected_categories[j]
+                        }
+                        address_results.append(poi)
+        # Füge die Ergebnisse für die aktuelle Adresse zum finalen Ergebnis hinzu
+        final_results[f'Appartment {i+1}'] = address_results
 
-    # Convert Decimal columns to float
-    for df in dataframes.values():
+# Convert each list of dictionaries to a DataFrame
+dataframes = {key: pd.DataFrame(value) for key, value in final_results.items()}
+
+# Convert Decimal columns to float, if they exist
+for df in dataframes.values():
+    if not df.empty and 'latitude' in df.columns and 'longitude' in df.columns:
         df['latitude'] = df['latitude'].astype(float)
         df['longitude'] = df['longitude'].astype(float)
 
-    # Allow the user to select a result
-    selected_result = st.selectbox('Select a result:', list(dataframes.keys()))
+# Allow the user to select a result
+selected_result = st.selectbox('Select a result:', list(dataframes.keys()))
 
-    # Get the selected DataFrame
+if selected_result:
     selected_df = dataframes[selected_result]
-
-    # Display the selected DataFrame
     st.dataframe(selected_df)
 
-    # Create a folium map centered around the selected points of interest
-    if not selected_df.empty:
-        map_center = [selected_df['latitude'].mean(), selected_df['longitude'].mean()]
-        mymap = folium.Map(location=map_center, zoom_start=14)
 
-        # Define colors for each category
-        category_colors = {
-            'gym': 'red',
-            'restaurant': 'purple',
-            'school': 'blue',
-            'bar': 'yellow',
-            'park': 'green',
-            'cafe': 'brown',
-            'hospital': 'white',
-            'transit': 'grey'
-        }
+# Create a folium map centered around the selected points of interest
+if not selected_df.empty:
+    map_center = [selected_df['latitude'].mean(), selected_df['longitude'].mean()]
+    mymap = folium.Map(location=map_center, zoom_start=14)
 
-        # Add points of interest to the map
-        for index, row in selected_df.iterrows():
-            folium.CircleMarker(
-                location=[row['latitude'], row['longitude']],
-                radius=5,  # Smaller radius
-                color=category_colors.get(row['category'], 'black'),
-                fill=True,
-                fill_color=category_colors.get(row['category'], 'black'),
-                fill_opacity=0.7,
-                popup=f"{row['name']} ({row['category']})"
-            ).add_to(mymap)
+# Define colors for each category
+category_colors = {
+    'gym': 'red',
+    'restaurant': 'purple',
+    'school': 'blue',
+    'bar': 'yellow',
+    'park': 'green',
+    'cafe': 'brown',
+    'hospital': 'white',
+    'transit': 'grey'
+}
 
-        # Display the map in Streamlit
-        st_folium(mymap, width=700, height=500)
+# Add points of interest to the map
+for index, row in selected_df.iterrows():
+    folium.CircleMarker(
+        location=[row['latitude'], row['longitude']],
+        radius=5,  # Smaller radius
+        color=category_colors.get(row['category'], 'black'),
+        fill=True,
+        fill_color=category_colors.get(row['category'], 'black'),
+        fill_opacity=0.7,
+        popup=f"{row['name']} ({row['category']})"
+    ).add_to(mymap)
 
-    # Fußzeile
-    st.markdown("---")
-    st.markdown("Developed by [Your Name](https://yourwebsite.com) | Powered by [Streamlit](https://streamlit.io) and [Folium](https://python-visualization.github.io/folium/).")
+# Display the map in Streamlit
+st_folium(mymap, width=700, height=500)
+
+
+# Fußzeile
+st.markdown("---")
+st.markdown("Developed by [Your Name](https://yourwebsite.com) | Powered by [Streamlit](https://streamlit.io) and [Folium](https://python-visualization.github.io/folium/).")
