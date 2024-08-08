@@ -135,7 +135,7 @@ for i in range(0, len(categories), 3):
 
 # API Request
 
-df = pd.read_csv("/home/hsinbyushin/code/elissus/flatquest/notebooks/berlin_cleaned.csv")
+df = pd.read_csv("../notebooks/berlin_cleaned.csv")
 
 # Button to trigger the API call
 if st.button('Submit'):
