@@ -30,3 +30,4 @@ streamlit_folium
 requests
 os
 st_aggrid
+plotly.express
