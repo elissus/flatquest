@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Load data from CSV
-data_path = "/Users/LinhVu/code/linhvu12/elissus/flatquest/notebooks/berlin_cleaned.csv"
+data_path = "../notebooks/berlin_cleaned.csv"
 df = pd.read_csv(data_path)
 
 # Streamlit page configuration
