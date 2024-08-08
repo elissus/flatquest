@@ -185,7 +185,7 @@ if st.button('Submit'):
                             'category': selected_categories[j]
                         }
                         address_results.append(poi)
-        final_results[f'Apartment {i+1}'] = address_results[:5]  # Limit to 5 points of interest
+        final_results[f'Apartment {i+1}'] = address_results[:20]  # Limit to 5 points of interest
 
     # Create a folium map
     mymap = folium.Map(location=[52.5200, 13.4050], zoom_start=12)  # Centered at Berlin for example
@@ -199,21 +199,35 @@ if st.button('Submit'):
             icon=folium.Icon(color='blue')
         ).add_to(mymap)
 
+    # Define colors for each category
+    category_colors = {
+        'restaurant': 'purple',
+        'bar': 'blue',
+        'gym': 'orange',
+        'park': 'green',
+        'cafe': 'brown',
+        'hospital': 'red',
+        'school': 'yellow',
+        'transit': 'grey'
+    }
+
     # Add points of interest to the map
     for key, pois in final_results.items():
         for poi in pois:
+            category = poi['category']
+            color = category_colors.get(category, 'black')  # Default to 'black' if category is not in the dictionary
             folium.CircleMarker(
                 location=[poi['latitude'], poi['longitude']],
                 radius=5,  # Smaller radius
-                color='red',
+                color=color,
                 fill=True,
-                fill_color='red',
+                fill_color=color,
                 fill_opacity=0.7,
                 popup=f"{poi['name']} ({poi['category']})"
             ).add_to(mymap)
 
-    # Store the map in session state
-    st.session_state['map'] = mymap
+        # Store the map in session state
+        st.session_state['map'] = mymap
 
 # Display the map if it exists in session state
 if st.session_state['map'] is not None:
