@@ -38,7 +38,7 @@ To run this app locally, follow these steps:
    streamlit run home.py
 
 
-##How to Use
+## How to Use
  - Open the app: Once you run the app with streamlit run main_script.py, it will
   open in your default web browser.
  - Select a city: Start typing the name of a city in the input field and choose
@@ -51,14 +51,14 @@ To run this app locally, follow these steps:
  - View results: The app will display a map with the selected apartments and
  nearby points of interest.
 
-##Deployment
+## Deployment
 To deploy this app on Streamlit Cloud:
 - Push your code to a GitHub repository.
 - Go to Streamlit Cloud and sign in.
 - Click on "New app" and connect your GitHub repository.
 - Follow the instructions to deploy the app.
 
-##Troubleshooting
+## Troubleshooting
 If the app cannot locate the berlin_cleaned.csv file during deployment, ensure
 that:
 
