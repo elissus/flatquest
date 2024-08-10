@@ -4,6 +4,7 @@ import folium
 from streamlit_folium import st_folium
 import os
 import geo
+import query
 
 # Initialize session state
 if 'map' not in st.session_state:
@@ -30,12 +31,6 @@ st.image(image_path, use_column_width=True)
 # Title and description
 st.title("Find an apartment")
 
-# Sample data - replace with your database query or CSV file
-cities = ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix",
-          "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Jose"]
-
-# Convert list to DataFrame
-cities_df = pd.DataFrame(cities, columns=["City"])
 
 # Defining empty variables to prevent Streamlit from printing Error Messages for not existing variables
 results = []
@@ -44,27 +39,33 @@ addresses = []
 requested_categories = {}
 selected_result = []
 
-# Create an input field with autocomplete
-def city_autocomplete():
-    input_city = st.text_input("Enter city name", key="city_input")
-    if input_city:
-        # Filter cities based on input
-        filtered_cities = cities_df[cities_df['City'].str.contains(input_city, case=False, na=False)]
+# Define unique categories
+categories = [
+    'restaurant',
+    'bar',
+    'gym',
+    'park',
+    'cafe',
+    'hospital',
+    'school',
+    'transit'
+]
 
-        if not filtered_cities.empty:
-            selected_city = st.radio(
-                "Suggestions",
-                filtered_cities['City'].tolist(),
-                key="suggestions_radio"
-            )
-            return selected_city
+# Allow the user to select categories of interest using checkboxes in rows
+selected_categories = []
+category_density = {}
 
-    return input_city
-
-selected_city = city_autocomplete()
-
-if selected_city:
-    st.write(f"You selected: {selected_city}")
+  # Define colors for each category
+category_colors = {
+        'restaurant': 'purple',
+        'bar': 'blue',
+        'gym': 'orange',
+        'park': 'green',
+        'cafe': 'brown',
+        'hospital': 'red',
+        'school': 'yellow',
+        'transit': 'grey'
+    }
 
 total_rent = st.text_input("Enter desired total rent in €", key="total rent")
 
@@ -92,24 +93,7 @@ except ValueError:
 
 balcony = True if balcony == 'yes' else False
 
-if selected_city:
-    st.write(f"You selected: {selected_city}")
 
-# Define unique categories
-categories = [
-    'restaurant',
-    'bar',
-    'gym',
-    'park',
-    'cafe',
-    'hospital',
-    'school',
-    'transit'
-]
-
-# Allow the user to select categories of interest using checkboxes in rows
-selected_categories = []
-category_density = {}
 
 st.write("Please select your places of interest")
 
@@ -135,7 +119,8 @@ for i in range(0, len(categories), 3):
 
 # API Request
 
-df = pd.read_csv("../notebooks/berlin_cleaned.csv")
+#df = pd.read_csv("../notebooks/berlin_cleaned.csv")
+df = query.query_bq()
 
 # Button to trigger the API call
 if st.button('Submit'):
@@ -185,35 +170,47 @@ if st.button('Submit'):
                             'category': selected_categories[j]
                         }
                         address_results.append(poi)
-        final_results[f'Apartment {i+1}'] = address_results[:5]  # Limit to 5 points of interest
+        final_results[f'Apartment {i+1}'] = address_results[:20]  # Limit to 5 points of interest
 
     # Create a folium map
     mymap = folium.Map(location=[52.5200, 13.4050], zoom_start=12)  # Centered at Berlin for example
 
     # Add addresses and points of interest to the map
     for address in st.session_state['addresses']:
-        address_coords = geo.geocode_address(address)  # Assuming this function returns the latitude and longitude
-        folium.Marker(
-            location=address_coords,
-            popup=f"Address: {address}",
-            icon=folium.Icon(color='blue')
-        ).add_to(mymap)
+        try:
+            address_coords = geo.geocode_address(address)  # Assuming this function returns the latitude and longitude
+            if address_coords is None:
+                st.warning(f"Skipping address {address} - could not geocode")
+                continue  # Skip this iteration if geocoding fails
+
+            # Add the marker to the map if geocoding was successful
+            folium.Marker(
+                location=address_coords,
+                popup=f"Address: {address}",
+                icon=folium.Icon(color='blue')
+            ).add_to(mymap)
+
+        except Exception as e:
+            st.error(f"An error occurred while geocoding the address {address}: {e}")
+            continue  # Skip this address if an error occurs
 
     # Add points of interest to the map
     for key, pois in final_results.items():
         for poi in pois:
+            category = poi['category']
+            color = category_colors.get(category, 'black')  # Default to 'black' if category is not in the dictionary
             folium.CircleMarker(
                 location=[poi['latitude'], poi['longitude']],
                 radius=5,  # Smaller radius
-                color='red',
+                color=color,
                 fill=True,
-                fill_color='red',
+                fill_color=color,
                 fill_opacity=0.7,
                 popup=f"{poi['name']} ({poi['category']})"
             ).add_to(mymap)
 
-    # Store the map in session state
-    st.session_state['map'] = mymap
+        # Store the map in session state
+        st.session_state['map'] = mymap
 
 # Display the map if it exists in session state
 if st.session_state['map'] is not None:
@@ -221,4 +218,4 @@ if st.session_state['map'] is not None:
 
 # Footer
 st.markdown("---")
-st.markdown("Developed by [Your Name](https://yourwebsite.com) | Powered by [Streamlit](https://streamlit.io) and [Folium](https://python-visualization.github.io/folium/).")
+st.markdown("Developed by FlatQuest Team | Powered by [Streamlit](https://streamlit.io) and [Folium](https://python-visualization.github.io/folium/).")

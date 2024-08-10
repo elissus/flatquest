@@ -24,5 +24,7 @@ streamlit
 folium
 streamlit_folium
 
-#Google
+plotly.express
+
+# Google
 google-cloud-bigquery
