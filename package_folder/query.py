@@ -6,7 +6,7 @@ def query_bq():
 
     query = f"""
     select *
-    FROM `flatquest-430519.flatquest_dataset.df_berlin_cleaneed`
+    FROM `flatquest-430519.flatquest_dataset.berlin_grouped`
     """
 
     print("Executing query:")
