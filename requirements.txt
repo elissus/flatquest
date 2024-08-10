@@ -24,9 +24,13 @@ streamlit
 folium
 streamlit_folium
 
+plotly.express
+
+
 requests
 st_aggrid
 plotly.express
 
 # Google
 google-cloud-bigquery
+
