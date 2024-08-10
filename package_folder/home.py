@@ -119,7 +119,9 @@ for i in range(0, len(categories), 3):
 
 # API Request
 
-df = pd.read_csv("berlin_cleaned.csv")
+#df = pd.read_csv("berlin_cleaned.csv")
+df = pd.read_csv(os.path.join(os.path.dirname(__file__), "berlin_cleaned.csv"))
+
 #df = query.query_bq()
 
 # Button to trigger the API call
