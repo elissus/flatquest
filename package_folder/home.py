@@ -119,8 +119,8 @@ for i in range(0, len(categories), 3):
 
 # API Request
 
-#df = pd.read_csv("../notebooks/berlin_cleaned.csv")
-df = query.query_bq()
+df = pd.read_csv("../notebooks/berlin_cleaned.csv")
+#df = query.query_bq()
 
 # Button to trigger the API call
 if st.button('Submit'):
