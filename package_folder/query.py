@@ -1,43 +1,31 @@
 from google.cloud import bigquery
+import pandas as pd
 
-rent = 1000
-area = 80
-rooms = 2
-balcony = 'True'
-result_limit = 10
-
-def query():#rent, area, rooms, balcony):
-
+def query_bq():
     client = bigquery.Client()
 
     query = f"""
-    with data as (
-    SELECT
-        description as description,
-        fullAddress as address,
-         totalRent as rent,
-        livingSpace as area,
-        noRooms as rooms,
-        balcony as balcony
-
-        FROM `flatquest-430519.flatquest_dataset.df_berlin_cleaneed`
-    )
     select *
-    from data
-    where rent <= 1000
-    and area >= 80
-    and rooms >= 2
-    and balcony = 'True'
-    limit 10
+    FROM `flatquest-430519.flatquest_dataset.df_berlin_cleaneed`
     """
+
+    print("Executing query:")
+    print(query)
 
     query_job = client.query(query)
     results = query_job.result()
     rows = [dict(row) for row in results]
-    return rows
+    df = pd.DataFrame(rows)
+
+    if df.empty:
+        print("No results found.")
+    else:
+        print(f"Found {len(df)} results.")
+
+    return df
 
 def main():
-    results = query()
+    results = query_bq()
     for row in results:
         print(row)
 

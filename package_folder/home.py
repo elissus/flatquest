@@ -4,6 +4,7 @@ import folium
 from streamlit_folium import st_folium
 import os
 import geo
+import query
 
 # Initialize session state
 if 'map' not in st.session_state:
@@ -135,7 +136,8 @@ for i in range(0, len(categories), 3):
 
 # API Request
 
-df = pd.read_csv("../notebooks/berlin_cleaned.csv")
+#df = pd.read_csv("../notebooks/berlin_cleaned.csv")
+df = query.query_bq()
 
 # Button to trigger the API call
 if st.button('Submit'):
@@ -185,35 +187,59 @@ if st.button('Submit'):
                             'category': selected_categories[j]
                         }
                         address_results.append(poi)
-        final_results[f'Apartment {i+1}'] = address_results[:5]  # Limit to 5 points of interest
+        final_results[f'Apartment {i+1}'] = address_results[:20]  # Limit to 5 points of interest
 
     # Create a folium map
     mymap = folium.Map(location=[52.5200, 13.4050], zoom_start=12)  # Centered at Berlin for example
 
     # Add addresses and points of interest to the map
     for address in st.session_state['addresses']:
-        address_coords = geo.geocode_address(address)  # Assuming this function returns the latitude and longitude
-        folium.Marker(
-            location=address_coords,
-            popup=f"Address: {address}",
-            icon=folium.Icon(color='blue')
-        ).add_to(mymap)
+        try:
+            address_coords = geo.geocode_address(address)  # Assuming this function returns the latitude and longitude
+            if address_coords is None:
+                st.warning(f"Skipping address {address} - could not geocode")
+                continue  # Skip this iteration if geocoding fails
+
+            # Add the marker to the map if geocoding was successful
+            folium.Marker(
+                location=address_coords,
+                popup=f"Address: {address}",
+                icon=folium.Icon(color='blue')
+            ).add_to(mymap)
+
+        except Exception as e:
+            st.error(f"An error occurred while geocoding the address {address}: {e}")
+            continue  # Skip this address if an error occurs
+
+    # Define colors for each category
+    category_colors = {
+        'restaurant': 'purple',
+        'bar': 'blue',
+        'gym': 'orange',
+        'park': 'green',
+        'cafe': 'brown',
+        'hospital': 'red',
+        'school': 'yellow',
+        'transit': 'grey'
+    }
 
     # Add points of interest to the map
     for key, pois in final_results.items():
         for poi in pois:
+            category = poi['category']
+            color = category_colors.get(category, 'black')  # Default to 'black' if category is not in the dictionary
             folium.CircleMarker(
                 location=[poi['latitude'], poi['longitude']],
                 radius=5,  # Smaller radius
-                color='red',
+                color=color,
                 fill=True,
-                fill_color='red',
+                fill_color=color,
                 fill_opacity=0.7,
                 popup=f"{poi['name']} ({poi['category']})"
             ).add_to(mymap)
 
-    # Store the map in session state
-    st.session_state['map'] = mymap
+        # Store the map in session state
+        st.session_state['map'] = mymap
 
 # Display the map if it exists in session state
 if st.session_state['map'] is not None:
