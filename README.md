@@ -1,3 +1,4 @@
+![Subdirectory Image](./package_folder/frontend_data/flatquest_header.jpg)
 # Flatquest App
 
 This Streamlit app helps users find apartments based on their preferences and
