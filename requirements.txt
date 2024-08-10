@@ -22,15 +22,13 @@ geopy
 # Frontend
 streamlit
 folium
-streamlit_folium
+streamlit-folium
 
 plotly.express
 
 
 requests
-st_aggrid
 plotly.express
 
 # Google
 google-cloud-bigquery
-
