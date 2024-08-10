@@ -54,7 +54,7 @@ fig_scatter = px.scatter(
     filtered_df,
     x='livingSpace',
     y='totalRent',
-    color='balcony',
+    color='typeOfFlat',
     size='noRooms',
     title="Scatterplot of Living Space vs. Total Rent",
     labels={'livingSpace': 'Living Space (m²)', 'totalRent': 'Total Rent (€)'},
