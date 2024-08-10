@@ -4,6 +4,7 @@ import folium
 from streamlit_folium import st_folium
 import os
 import geo
+import query
 
 # Initialize session state
 if 'map' not in st.session_state:
@@ -135,7 +136,8 @@ for i in range(0, len(categories), 3):
 
 # API Request
 
-df = pd.read_csv("../notebooks/berlin_cleaned.csv")
+#df = pd.read_csv("../notebooks/berlin_cleaned.csv")
+df = query.query_bq()
 
 # Button to trigger the API call
 if st.button('Submit'):
@@ -192,12 +194,22 @@ if st.button('Submit'):
 
     # Add addresses and points of interest to the map
     for address in st.session_state['addresses']:
-        address_coords = geo.geocode_address(address)  # Assuming this function returns the latitude and longitude
-        folium.Marker(
-            location=address_coords,
-            popup=f"Address: {address}",
-            icon=folium.Icon(color='blue')
-        ).add_to(mymap)
+        try:
+            address_coords = geo.geocode_address(address)  # Assuming this function returns the latitude and longitude
+            if address_coords is None:
+                st.warning(f"Skipping address {address} - could not geocode")
+                continue  # Skip this iteration if geocoding fails
+
+            # Add the marker to the map if geocoding was successful
+            folium.Marker(
+                location=address_coords,
+                popup=f"Address: {address}",
+                icon=folium.Icon(color='blue')
+            ).add_to(mymap)
+
+        except Exception as e:
+            st.error(f"An error occurred while geocoding the address {address}: {e}")
+            continue  # Skip this address if an error occurs
 
     # Define colors for each category
     category_colors = {
