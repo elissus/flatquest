@@ -23,3 +23,6 @@ geopy
 streamlit
 folium
 streamlit_folium
+
+#Google
+google-cloud-bigquery
