@@ -42,8 +42,6 @@ To run this app locally, follow these steps:
 ## How to Use
  - Open the app: Once you run the app with streamlit run main_script.py, it will
   open in your default web browser.
- - Select a city: Start typing the name of a city in the input field and choose
-  from the suggestions.
  - Enter your preferences: Fill in the desired total rent, living space, number
  of rooms, and balcony preference.
  - Select points of interest: Choose up to three categories of interest from the
