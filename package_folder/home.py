@@ -31,12 +31,6 @@ st.image(image_path, use_column_width=True)
 # Title and description
 st.title("Find an apartment")
 
-# Sample data - replace with your database query or CSV file
-cities = ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix",
-          "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Jose"]
-
-# Convert list to DataFrame
-cities_df = pd.DataFrame(cities, columns=["City"])
 
 # Defining empty variables to prevent Streamlit from printing Error Messages for not existing variables
 results = []
@@ -45,27 +39,33 @@ addresses = []
 requested_categories = {}
 selected_result = []
 
-# Create an input field with autocomplete
-def city_autocomplete():
-    input_city = st.text_input("Enter city name", key="city_input")
-    if input_city:
-        # Filter cities based on input
-        filtered_cities = cities_df[cities_df['City'].str.contains(input_city, case=False, na=False)]
+# Define unique categories
+categories = [
+    'restaurant',
+    'bar',
+    'gym',
+    'park',
+    'cafe',
+    'hospital',
+    'school',
+    'transit'
+]
 
-        if not filtered_cities.empty:
-            selected_city = st.radio(
-                "Suggestions",
-                filtered_cities['City'].tolist(),
-                key="suggestions_radio"
-            )
-            return selected_city
+# Allow the user to select categories of interest using checkboxes in rows
+selected_categories = []
+category_density = {}
 
-    return input_city
-
-selected_city = city_autocomplete()
-
-if selected_city:
-    st.write(f"You selected: {selected_city}")
+  # Define colors for each category
+category_colors = {
+        'restaurant': 'purple',
+        'bar': 'blue',
+        'gym': 'orange',
+        'park': 'green',
+        'cafe': 'brown',
+        'hospital': 'red',
+        'school': 'yellow',
+        'transit': 'grey'
+    }
 
 total_rent = st.text_input("Enter desired total rent in €", key="total rent")
 
@@ -93,24 +93,7 @@ except ValueError:
 
 balcony = True if balcony == 'yes' else False
 
-if selected_city:
-    st.write(f"You selected: {selected_city}")
 
-# Define unique categories
-categories = [
-    'restaurant',
-    'bar',
-    'gym',
-    'park',
-    'cafe',
-    'hospital',
-    'school',
-    'transit'
-]
-
-# Allow the user to select categories of interest using checkboxes in rows
-selected_categories = []
-category_density = {}
 
 st.write("Please select your places of interest")
 
@@ -211,18 +194,6 @@ if st.button('Submit'):
             st.error(f"An error occurred while geocoding the address {address}: {e}")
             continue  # Skip this address if an error occurs
 
-    # Define colors for each category
-    category_colors = {
-        'restaurant': 'purple',
-        'bar': 'blue',
-        'gym': 'orange',
-        'park': 'green',
-        'cafe': 'brown',
-        'hospital': 'red',
-        'school': 'yellow',
-        'transit': 'grey'
-    }
-
     # Add points of interest to the map
     for key, pois in final_results.items():
         for poi in pois:
@@ -247,4 +218,4 @@ if st.session_state['map'] is not None:
 
 # Footer
 st.markdown("---")
-st.markdown("Developed by [Your Name](https://yourwebsite.com) | Powered by [Streamlit](https://streamlit.io) and [Folium](https://python-visualization.github.io/folium/).")
+st.markdown("Developed by FlatQuest Team | Powered by [Streamlit](https://streamlit.io) and [Folium](https://python-visualization.github.io/folium/).")
