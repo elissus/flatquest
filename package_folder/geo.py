@@ -1,12 +1,11 @@
 import overpy
 from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
+from geopy.exc import GeocoderTimedOut
 import pandas as pd
 import argparse
 import math
 #from google.cloud import bigquery
-
-
 
 # function to geocode an address into latitude and longitude
 def geocode_address(address: str, timeout: int = 10):
@@ -33,13 +32,13 @@ def calculate_distance(coord1, coord2):
     return geodesic(coord1, coord2).kilometers
 
 
-def encode_density(place_type, density):
+def encode_density(place_type, count_of_places):
     density_ranges = {
-        'restaurant': {'H': 20, 'M': 10, 'L': 5},
-        'bar': {'H': 20, 'M': 5, 'L': 0},
-        'gym': {'H': 5, 'M': 3, 'L': 0},
-        'park': {'H': 3, 'M': 2, 'L': 0},
-        'cafe': {'H': 20, 'M': 10, 'L': 0},
+        'restaurant': {'H': 15, 'M': 10, 'L': 5},
+        'bar': {'H': 10, 'M': 5, 'L': 0},
+        'gym': {'H': 5, 'M': 2, 'L': 0},
+        'park': {'H': 25, 'M': 20, 'L': 10},
+        'cafe': {'H': 15, 'M': 10, 'L': 5},
         'hospital': {'H': 2, 'M': 1, 'L': 0},
         'school': {'H': 2, 'M': 1, 'L': 0},
         'transit': {'H': 2, 'M': 1, 'L': 0}
@@ -49,16 +48,16 @@ def encode_density(place_type, density):
     if not ranges:
         return 'N/A'
 
-    if density > ranges['H']:
+    if count_of_places > ranges['H']:
         return 'High'
-    elif density > ranges['M']:
+    elif count_of_places > ranges['M']:
         return 'Medium'
     else:
         return 'Low'
 
 
 # function to places of a given type within a radius of a given address
-def find_nearby_places(address:str, place_type:str, radius:int=500):
+def find_nearby_places(address:str, place_type:str, radius:int=500, limit: int = 30):
     '''Function to find places of a specific type near a given address and radius in meters.
     Available place types are: "restaurant", "bar", "gym", "park", "cafe", "hospital", "school"'''
     latitude, longitude = geocode_address(address)
@@ -93,7 +92,7 @@ def find_nearby_places(address:str, place_type:str, radius:int=500):
         way{osm_tag}(around:{radius},{latitude},{longitude});
         relation{osm_tag}(around:{radius},{latitude},{longitude});
     );
-    out center;
+    out center {limit};
     """
 
     # Query the Overpass API
@@ -149,60 +148,23 @@ def find_nearby_places(address:str, place_type:str, radius:int=500):
     area = math.pi * ((radius/1000)** 2)
 
     # Calculate the density score
-    if count_of_places > 0:
-        #inverse_distance_sum = sum([1 / place['distance']/1000 for place in places_sorted if place['distance'] > 0])
-        density = (count_of_places / area)
-    else:
-        density = 0
+    #if count_of_places > 0:
+    #    #inverse_distance_sum = sum([1 / place['distance']/1000 for place in places_sorted if place['distance'] > 0])
+    #    density = (count_of_places / area)
+    #else:
+    #    density = 0
 
     # encode density
-    encoded_density = encode_density(place_type, density)
+    encoded_density = encode_density(place_type, count_of_places)
 
     print(places_sorted)
     print(f"Count of places: {count_of_places}")
     print(f"Area: {area}")
     print(f"Average distance: {average_distance:.2f} kilometers")
-    print(f"Density: {density} per square kilometer")
+    #print(f"Density: {density} per square kilometer")
     print(f"Encoded density: {encoded_density}")
 
-    return pd.DataFrame(places_sorted) #density, average_distance
-
-dataset = '`flatquest-430519.flatquest_dataset.df_berlin_cleaneed`'
-rent = 1000
-area = 80
-rooms = 2
-balcony = 'True'
-result_limit = 10
-
-def query(rent, area, rooms, balcony):
-
-    client = bigquery.Client()
-
-    query = f"""
-    with data as (
-    SELECT
-        description as description,
-        fullAddress as address,
-         totalRent as rent,
-        livingSpace as area,
-        noRooms as rooms,
-        balcony as balcony
-
-        FROM `flatquest-430519.flatquest_dataset.df_berlin_cleaneed`
-    )
-    select *
-    from data
-    where rent <= {rent}
-    and area >= {area}
-    and rooms >= {rooms}
-    and balcony = {balcony}
-    limit {result_limit}
-    """
-
-    query_job = client.query(query)
-    results = query_job.result()
-    rows = [dict(row) for row in results]
-    return rows
+    return pd.DataFrame(places_sorted)#, density, average_distance
 
 # Function to query a csv based Dataframe of the flats.
 def find_best_matches(df, no_rooms, total_rent, living_space, balcony, top_n=10):
@@ -220,10 +182,6 @@ def find_best_matches(df, no_rooms, total_rent, living_space, balcony, top_n=10)
 
     # Drop the similarity score column for the final output
     return best_matches.drop(columns=['similarity_score'])
-
-
-
-
 
 def main():
     parser = argparse.ArgumentParser(description="Find nearby places of a specific type.")
