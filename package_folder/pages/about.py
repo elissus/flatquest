@@ -1,31 +1,82 @@
 import streamlit as st
 import os
 
+st.set_page_config(layout="wide")
+
+st.markdown(
+    """
+    <style>
+    .big-font {
+        font-size:50px !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    """
+    <style>
+    .header-text {
+        font-size: 20px !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # Get the directory of the current script
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Define the relative path to the header image
-relative_path = os.path.join("..", "frontend_data", "flatquest_header.jpg")
-
-# Construct the absolute path
-image_path = os.path.join(current_dir, relative_path)
-
+header_path = os.path.join(current_dir, "..", "frontend_data", "flatquest_header.jpg")
+kiez_path = os.path.join(current_dir, "..", "frontend_data", "kiez.jpg")
+schlange_path = os.path.join(current_dir, "..", "frontend_data", "schlange.jpg")
+bezirk_path = os.path.join(current_dir, "..", "frontend_data", "bezirk.jpg")
+map_path = os.path.join(current_dir, "..", "frontend_data", "cafe_map.png")
+umziehen_path = os.path.join(current_dir, "..", "frontend_data", "umziehen.jpg")
 
 # Display the header image
-st.image(image_path, use_column_width=True)
+st.image(header_path, use_column_width=True)
 
 # About page content
 about_text = """
-
-Once upon a time, in a land not so far away, there was a valiant hero—you—on a grand quest. This wasn’t just any quest; it was the ultimate adventure of finding the perfect apartment. In the vast kingdom of real estate, filled with dragons of high rent and dungeons of tiny living spaces, you needed more than just courage. You needed FlatQuest!
-
-FlatQuest is not your ordinary real estate app; it's your enchanted map, guiding you through the treacherous terrain of apartment hunting. As you don your armor and set out on this noble journey, FlatQuest ensures that you find a dwelling that meets all your heroic needs—not just in size but also in the magical infrastructure surrounding it.
-
-Imagine a scroll that not only lists apartments with ample living space and the perfect number of rooms but also marks the proximity to crucial landmarks. Need a tavern for nightly feasts? FlatQuest knows the best spots. Seeking schools for young apprentices? We’ve got you covered. Craving a park for your trusty steed (or perhaps a dog)? FlatQuest shows you the greenest pastures. Want a bustling marketplace of restaurants and bars for epic tales and merry-making? Your quest just got easier.
-
-So, brave adventurer, strap on your boots, grab your wizard’s staff (or smartphone), and embark on this epic journey with FlatQuest. Because every hero deserves a happy ending in the perfect home. Onward to your next great adventure—your perfect flat awaits!
+Discover your perfect Berlin home with FlatQuest, the only rental platform that goes beyond the basics. Whether you’re searching for a cozy apartment with a gym around the corner or a family-friendly home near top schools, FlatQuest helps you explore Berlin’s hidden gems. We combine traditional search criteria with personalized filters based on the amenities and lifestyle features that matter most to you, making it easier than ever to find a place you’ll love in neighborhoods you never knew existed.
 """
 
 # Streamlit app
 st.title("Welcome to FlatQuest: Your Epic Journey to the Perfect Apartment!")
-st.write(about_text)
+st.markdown(f'<p class="header-text">{about_text}</p>', unsafe_allow_html=True)
+st.markdown("<hr>", unsafe_allow_html=True)
+
+# Applying the custom CSS class to your text
+st.markdown('<p class="big-font">The Problem we are Solving</p>', unsafe_allow_html=True)
+
+# Creating two columns
+col1, spacer, col2 = st.columns([1, 0.2, 1])
+
+# Adding content to the left column (col1)
+with col1:
+    st.markdown("### High Demand in Popular Areas")
+    st.image(bezirk_path, caption="Rental prices per district")
+    st.write("Popular neighborhoods are in high demand, leading to limited availability and inflated prices, forcing many to settle for less desirable options.")
+    st.write("")
+    st.write("")
+    st.write("")
+    st.markdown("### Search platforms are not neighborhood-aware")
+    st.image(map_path, caption="Screenshot of a popular rental platform")
+    st.write("Popular search platforms don't allow users look for apartments close to ameneties that are important to them. This is equivalent to looking for the right apartment in the wrong place")
+
+
+
+# Adding content to the right column (col2)
+with col2:
+    st.markdown("### Limited Neighborhood Knowledge")
+    st.image(umziehen_path, caption="Berlin neighborhood")
+    st.write("Many Berlin apartment hunters, especially newcomers, lack in-depth information about neighborhoods outside of popular areas like Kreuzberg and Prenzlauer Berg, making it difficult to explore other suitable options.")
+    st.write("")
+    st.write("")
+    st.write("")
+    st.markdown("### Missed Opportunities in Lesser-Known Areas")
+    st.image(kiez_path, caption="Berlin neighborhood")
+    st.write("Without a way to filter and discover areas based on specific amenities or services, users might overlook neighborhoods that could be a perfect fit for their needs, simply because they are not as well-known or popular.")
