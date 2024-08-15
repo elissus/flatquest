@@ -3,10 +3,12 @@ import pandas as pd
 import plotly.express as px
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
 
 # Load data from CSV
-data_path = "../notebooks/berlin_cleaned.csv"
-df = pd.read_csv(data_path)
+#data_path = "../notebooks/berlin_cleaned.csv"
+df = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(__file__)), "berlin_cleaned.csv"))
+
 
 # Streamlit page configuration
 st.set_page_config(
