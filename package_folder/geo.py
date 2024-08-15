@@ -37,7 +37,7 @@ def encode_density(place_type, count_of_places):
         'restaurant': {'H': 15, 'M': 10, 'L': 5},
         'bar': {'H': 10, 'M': 5, 'L': 0},
         'gym': {'H': 5, 'M': 2, 'L': 0},
-        'park': {'H': 25, 'M': 20, 'L': 10},
+        'park': {'H': 20, 'M': 10, 'L': 5},
         'cafe': {'H': 15, 'M': 10, 'L': 5},
         'hospital': {'H': 2, 'M': 1, 'L': 0},
         'school': {'H': 2, 'M': 1, 'L': 0},
