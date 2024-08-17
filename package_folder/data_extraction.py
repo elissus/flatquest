@@ -30,7 +30,9 @@ def transform_data(row):
     poi_categories = {
         'restaurant': row['restaurant_places'] if pd.notna(row['restaurant_places']) else [],
         'gym': row['gym_places'] if pd.notna(row['gym_places']) else [],
-        'transit': row['transit_places'] if pd.notna(row['transit_places']) else []
+        'transit': row['transit_places'] if pd.notna(row['transit_places']) else [],
+        'park': row['park_places'] if pd.notna(row['park_places']) else [],
+        'bar': row['bar_places'] if pd.notna(row['bar_places']) else []
     }
 
 
