@@ -8,6 +8,7 @@ import os
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 team = os.path.join(current_dir, "..", "frontend_data", "team.png")
+qr = os.path.join(current_dir, "..", "frontend_data", "flatquest_qr.png")
 
 # Streamlit page configuration
 st.set_page_config(
@@ -41,3 +42,10 @@ st.markdown('<p class="big-font">Meet the Team</p>', unsafe_allow_html=True)
 st.write("")
 
 st.image(team)
+st.write("")
+st.write("")
+st.write("")
+st.write("")
+st.write("")
+st.markdown('<p class="big-font">Scan Me!</p>', unsafe_allow_html=True)
+st.image(qr)
