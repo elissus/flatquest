@@ -90,29 +90,36 @@ fig_scatter = px.scatter(
     y='totalRent',
     color='typeOfFlat',
     size='noRooms',
-    range_x= [20, 300],
-    range_y= [1, 10000],
+    range_x= [40, 150],
+    range_y= [1, 3000],
     title="Scatterplot of Living Space vs. Total Rent",
     labels={'livingSpace': 'Living Space (m²)', 'totalRent': 'Total Rent (€)'},
     hover_data=['fullAddress']
 )
 
-# Show the plot
-st.plotly_chart(fig_scatter, use_container_width=True)
-
-# Additional information
-st.write(
-    """
-    some text
-    """
+# Update the font size for the entire chart and the title
+fig_scatter.update_layout(
+    font=dict(
+        family="Courier New, monospace",  # Font family
+        size=50,  # Adjust this value for the overall font size
+        color="RebeccaPurple"  # Font color
+    ),
+    title=dict(
+        font=dict(
+            size=30  # Adjust this value for the title font size
+        )
+    )
 )
+
+# Show the plot in Streamlit
+st.plotly_chart(fig_scatter, use_container_width=True)
 
 # Create a heatmap
 st.subheader('Correlation Heatmap')
 df_num = df.select_dtypes(include=['int64', 'float64'])
 plt.figure(figsize=(10, 6))
-sns.heatmap(df_num.corr(), annot=True, fmt=".2f", cmap='coolwarm')
-plt.title('Correlation Heatmap of numerial features')
+sns.heatmap(df_num.corr(), annot=True, fmt=".1f", cmap='coolwarm')
+plt.title('Correlation Heatmap of numerical features')
 
 # Show the heatmap
 st.pyplot(plt)
