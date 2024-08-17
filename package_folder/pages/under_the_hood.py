@@ -18,7 +18,7 @@ pie_image = os.path.join(current_dir, "..", "frontend_data", "pie.png")
 osm_image = os.path.join(current_dir, "..", "frontend_data", "osm.png")
 latitude_image = os.path.join(current_dir, "..", "frontend_data", "latitude.jpg")
 geocoding_image = os.path.join(current_dir, "..", "frontend_data", "geocoding.png")
-
+forest_image = os.path.join(current_dir, "..", "frontend_data", "forest.png")
 
 
 
@@ -127,6 +127,21 @@ plt.title('Correlation Heatmap of numerical features')
 st.pyplot(plt)
 
 st.markdown('<p class="big-font">The Rental Price prediction model</p>', unsafe_allow_html=True)
+
+col3, spacer2, col4 = st.columns([1, 0.2, 1])
+
+with col3:
+    st.image(forest_image)
+
+with col4:
+    st.write("""
+             - Identify key features
+             - Remove outliers
+             - Scale numerical features
+             - Select best model""")
+    #st.markdown(f'<p class="header-text">{data_text}</p>', unsafe_allow_html=True)
+
+st.write("")
 st.write("")
 st.write("")
 st.write("")
