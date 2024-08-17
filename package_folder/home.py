@@ -131,13 +131,12 @@ if st.button('Submit'):
     all_poi_results = []
 
     # Iterate over each row in the DataFrame
-    #for i in range(len(apartment_df)):
+    for i in range(len(apartment_df)):
         # Get the row-specific data transformed by dax.transform_data
-    row_data = dax.transform_row(apartment_df)
+        row_data = dax.transform_data(apartment_df.iloc[i])
 
-        # Flatten the row data and append it to the all_poi_results list
-    for key, value in row_data.items():
-        all_poi_results.append(value)
+        # Append the entire dictionary, preserving keys and values
+        all_poi_results.append(row_data)
 
     st.session_state['results'] = all_poi_results
 
@@ -149,7 +148,7 @@ if st.button('Submit'):
         address = st.session_state['addresses'][i]
         address_results = []
 
-        # Extract the results for the current apartment
+        # Extract the results for the current apartments
         poi_data = st.session_state['results'][i]
 
         # Define a limit per category (e.g., 30 POIs per category)
@@ -173,8 +172,13 @@ if st.button('Submit'):
                             address_results.append(poi_info)
                             count += 1
 
+            else:
+                # If the category is not in selected_categories, continue to the next category
+                continue
+
         # Store the results for the current apartment
-        final_results[f'Apartment {i+1}'] = address_results[:100]  # Limit to 30 POIs per apartment
+        final_results[f'Apartment {i+1}'] = address_results[:100]  # Limit to 100 POIs per apartment
+
 
     # Create a folium map centered at a default location (Berlin)
     mymap = folium.Map(location=[52.5200, 13.4050], zoom_start=12)
@@ -191,7 +195,7 @@ if st.button('Submit'):
             folium.Marker(
                 location=address_coords,
                 popup=f'''Address: {address} --
-                The price of this Flat is {'below average' if apartment_df.loc[apartment_df['fullAddress'] == address, 'price_category_pred'].values[0] == 'below_average' else 'above average'}''',
+                The price of this flat is {'below average' if apartment_df.loc[apartment_df['fullAddress'] == address, 'price_category_pred'].values[0] == 'below_average' else 'above average'}''',
                 icon=folium.Icon(color='blue')
             ).add_to(mymap)
 

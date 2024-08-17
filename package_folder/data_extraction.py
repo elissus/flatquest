@@ -1,6 +1,7 @@
 import json
 import re
 import pandas as pd
+import ast
 
 
 def find_best_matches_2(df, no_rooms, total_rent, living_space, balcony, selected_categories, category_density, top_n=10, density_penalty=1):
@@ -35,7 +36,6 @@ def transform_data(row):
         'bar': row['bar_places'] if pd.notna(row['bar_places']) else []
     }
 
-
     all_res = {}  # Dictionary to store results with category names as keys
 
     # Process each category
@@ -59,6 +59,7 @@ def transform_data(row):
 
     # Return the dictionary with all results
     return all_res
+
 
 def transform_row(df):
     results = {}  # Initialize the results dictionary
