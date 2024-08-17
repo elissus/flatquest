@@ -1,7 +1,7 @@
 import json
 import re
 import pandas as pd
-import ast
+
 
 
 def find_best_matches_2(df, no_rooms, total_rent, living_space, balcony, selected_categories, category_density, top_n=10, density_penalty=1):
