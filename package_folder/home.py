@@ -5,6 +5,7 @@ from streamlit_folium import st_folium
 import os
 import geo
 import query
+import data_extraction as dax
 
 # Initialize session state
 if 'map' not in st.session_state:
@@ -101,7 +102,7 @@ st.write("Please select your places of interest")
 selected_count = 0
 
 # Slider options
-options = ["Some", "Average", "Many"]
+options = ["Low", "Medium", "High"]
 
 for i in range(0, len(categories), 3):
     cols = st.columns(3)
@@ -120,72 +121,71 @@ for i in range(0, len(categories), 3):
 # API Request
 
 #df = pd.read_csv("berlin_cleaned.csv")
-df = pd.read_csv(os.path.join(os.path.dirname(__file__), "berlin_cleaned.csv"))
+df = pd.read_csv(os.path.join(os.path.dirname(__file__), "berlin_merged.csv"))
 
 #df = query.query_bq()
 
-# Button to trigger the API call
+# Define the button to trigger the process
 if st.button('Submit'):
-    st.session_state['first_query'] = geo.find_best_matches(df, no_rooms, total_rent, living_space, balcony, top_n=10)
-    #st.write(st.session_state['first_query'])
+    # Call dax.find_best_matches_2 to get the DataFrame of apartments
+    apartment_df = dax.find_best_matches_2(df, no_rooms, total_rent, living_space, balcony, selected_categories, category_density, top_n=10)
 
-    # Prepare the data for the API call
-    requested_categories = {
-        'selected_categories': selected_categories,
-        'category_density': category_density
-    }
+    # Store the addresses for later use
+    st.session_state['addresses'] = apartment_df['fullAddress'].tolist()
 
-    st.session_state['addresses'] = st.session_state['first_query']['fullAddress'].tolist()
+    # Initialize an empty list to store all results
+    all_poi_results = []
 
-    results = []
+    # Iterate over each row in the DataFrame
+    #for i in range(len(apartment_df)):
+        # Get the row-specific data transformed by dax.transform_data
+    row_data = dax.transform_row(apartment_df)
 
-    # Iterate over each address
-    for address in st.session_state['addresses']:
-        # List to hold results for different categories for the current address
-        address_results = []
+        # Flatten the row data and append it to the all_poi_results list
+    for key, value in row_data.items():
+        all_poi_results.append(value)
 
-        # Iterate over each category
-        for category in selected_categories:
-            # Call the API and store the results for the current category
-            category_results = geo.find_nearby_places(address, category)
-            address_results.append(category_results)
+    st.session_state['results'] = all_poi_results
 
-        # Store the results for the current address
-        results.append(address_results)
-
-    st.session_state['results'] = results
-
-    # Create the map only after the results are ready
+    # Create a dictionary to hold the final results for map plotting
     final_results = {}
 
-    # Iterate over the addresses
+    # Iterate over the apartment addresses and corresponding POI results
     for i in range(len(st.session_state['addresses'])):
-        address_results = []  # List to store results for the current address
-        for j in range(len(selected_categories)):  # Iterate over the categories
-            if len(st.session_state['results'][i]) > j:  # Check if results for the category exist
-                if 'name' in st.session_state['results'][i][j]:  # Check if the 'name' key exists
-                    for k in range(len(st.session_state['results'][i][j]['name'])):  # Iterate over the points of interest
-                        poi = {
-                            'name': st.session_state['results'][i][j]['name'][k],
-                            'latitude': st.session_state['results'][i][j]['latitude'][k],
-                            'longitude': st.session_state['results'][i][j]['longitude'][k],
-                            'category': selected_categories[j]
-                        }
-                        address_results.append(poi)
-        final_results[f'Apartment {i+1}'] = address_results[:20]  # Limit to 5 points of interest
+        address = st.session_state['addresses'][i]
+        address_results = []
 
-    # Create a folium map
-    mymap = folium.Map(location=[52.5200, 13.4050], zoom_start=12)  # Centered at Berlin for example
+        # Extract the results for the current apartment
+        poi_data = st.session_state['results'][i]
 
-    # Add addresses and points of interest to the map
-    for address in st.session_state['addresses']:
+        # Iterate over the categories (restaurant, gym, transit)
+        for category, pois in poi_data.items():
+            for poi_list in pois:
+                for poi in poi_list:
+                    # Create a POI dictionary with necessary details
+                    poi_info = {
+                        'name': poi['name'],
+                        'latitude': poi['latitude'],
+                        'longitude': poi['longitude'],
+                        'category': category
+                    }
+                    address_results.append(poi_info)
+
+        # Store the results for the current apartment
+        final_results[f'Apartment {i+1}'] = address_results[:20]  # Limit to 20 POIs per apartment
+
+    # Create a folium map centered at a default location (Berlin)
+    mymap = folium.Map(location=[52.5200, 13.4050], zoom_start=12)
+
+    # Add apartment addresses to the map
+    for i, address in enumerate(st.session_state['addresses']):
         try:
-            address_coords = geo.geocode_address(address)  # Assuming this function returns the latitude and longitude
+            address_coords = geo.geocode_address(address)  # Assuming this function returns latitude and longitude
             if address_coords is None:
                 st.warning(f"Skipping address {address} - could not geocode")
-                continue  # Skip this iteration if geocoding fails
+                continue  # Skip this address if geocoding fails
 
-            # Add the marker to the map if geocoding was successful
+            # Add a marker for the apartment address
             folium.Marker(
                 location=address_coords,
                 popup=f"Address: {address}",
@@ -196,11 +196,10 @@ if st.button('Submit'):
             st.error(f"An error occurred while geocoding the address {address}: {e}")
             continue  # Skip this address if an error occurs
 
-    # Add points of interest to the map
     for key, pois in final_results.items():
         for poi in pois:
             category = poi['category']
-            color = category_colors.get(category, 'black')  # Default to 'black' if category is not in the dictionary
+            color = category_colors.get(category, 'black')  # Default to black if category color is not defined
             folium.CircleMarker(
                 location=[poi['latitude'], poi['longitude']],
                 radius=5,  # Smaller radius
@@ -211,12 +210,13 @@ if st.button('Submit'):
                 popup=f"{poi['name']} ({poi['category']})"
             ).add_to(mymap)
 
-        # Store the map in session state
-        st.session_state['map'] = mymap
+    # Store the map in session state
+    st.session_state['map'] = mymap
 
 # Display the map if it exists in session state
-if st.session_state['map'] is not None:
-    st_folium(st.session_state['map'], width=700, height=500)
+if 'map' in st.session_state and st.session_state['map'] is not None:
+    st_folium(st.session_state['map'], width='100%', height=700)
+
 
 # Footer
 st.markdown("---")
