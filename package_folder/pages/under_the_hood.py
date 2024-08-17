@@ -8,6 +8,8 @@ import os
 # Load data from CSV
 #data_path = "../notebooks/berlin_cleaned.csv"
 df = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(__file__)), "berlin_cleaned.csv"))
+drop_columns = ['Unnamed: 0', 'telekomUploadSpeed', 'scoutId']
+df_hm = df.drop(columns=drop_columns)
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -88,17 +90,17 @@ fig_scatter = px.scatter(
     df,
     x='livingSpace',
     y='totalRent',
-    color='typeOfFlat',
     size='noRooms',
-    range_x= [40, 150],
-    range_y= [1, 3000],
+    range_x= [10, 300],
+    range_y= [1, 5000],
     title="Scatterplot of Living Space vs. Total Rent",
     labels={'livingSpace': 'Living Space (m²)', 'totalRent': 'Total Rent (€)'},
-    hover_data=['fullAddress']
+    size_max=50
 )
 
 # Update the font size for the entire chart and the title
 fig_scatter.update_layout(
+    height=800,
     font=dict(
         family="Courier New, monospace",  # Font family
         size=50,  # Adjust this value for the overall font size
@@ -116,8 +118,8 @@ st.plotly_chart(fig_scatter, use_container_width=True)
 
 # Create a heatmap
 st.subheader('Correlation Heatmap')
-df_num = df.select_dtypes(include=['int64', 'float64'])
-plt.figure(figsize=(10, 6))
+df_num = df_hm.select_dtypes(include=['int64', 'float64'])
+plt.figure(figsize=(10, 4))
 sns.heatmap(df_num.corr(), annot=True, fmt=".1f", cmap='coolwarm')
 plt.title('Correlation Heatmap of numerical features')
 
