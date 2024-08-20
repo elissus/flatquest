@@ -19,9 +19,7 @@ osm_image = os.path.join(current_dir, "..", "frontend_data", "osm.png")
 latitude_image = os.path.join(current_dir, "..", "frontend_data", "latitude.jpg")
 geocoding_image = os.path.join(current_dir, "..", "frontend_data", "geocoding.png")
 forest_image = os.path.join(current_dir, "..", "frontend_data", "forest.png")
-
-
-
+heatmap_image = os.path.join(current_dir, "..", "frontend_data", "heatmap.png")
 
 
 # Streamlit page configuration
@@ -117,14 +115,11 @@ fig_scatter.update_layout(
 st.plotly_chart(fig_scatter, use_container_width=True)
 
 # Create a heatmap
-st.subheader('Correlation Heatmap')
-df_num = df_hm.select_dtypes(include=['int64', 'float64'])
-plt.figure(figsize=(10, 4))
-sns.heatmap(df_num.corr(), annot=True, fmt=".1f", cmap='coolwarm')
-plt.title('Correlation Heatmap of numerical features')
 
-# Show the heatmap
-st.pyplot(plt)
+st.image(heatmap_image)
+st.write("")
+st.write("")
+
 
 st.markdown('<p class="big-font">The Rental Price prediction model</p>', unsafe_allow_html=True)
 
