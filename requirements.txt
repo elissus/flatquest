@@ -23,8 +23,6 @@ geopy
 streamlit
 folium
 streamlit_folium
-json
-
 plotly.express
 
 # Google
