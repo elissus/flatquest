@@ -114,30 +114,35 @@ fig_scatter.update_layout(
 # Show the plot in Streamlit
 st.plotly_chart(fig_scatter, use_container_width=True)
 
-# Create a heatmap
-
-st.image(heatmap_image)
-st.write("")
-st.write("")
-
 
 st.markdown('<p class="big-font">The Rental Price prediction model</p>', unsafe_allow_html=True)
 
+# Create a heatmap
+
+
+
 col3, spacer2, col4 = st.columns([1, 0.2, 1])
 
+
+
 with col3:
-    st.image(forest_image)
+    st.write("")
+    st.write("")
+    st.write("")
+    st.markdown(f"""
+    <p class="header-text">
+        1. Identify key features<br>
+        2. Remove outliers<br>
+        3. Scale numerical features<br>
+        4. Select best model
+    </p>
+    """, unsafe_allow_html=True)
 
 with col4:
-    st.write("""
-             - Identify key features
-             - Remove outliers
-             - Scale numerical features
-             - Select best model""")
-    #st.markdown(f'<p class="header-text">{data_text}</p>', unsafe_allow_html=True)
+    st.image(forest_image)
 
-st.write("")
-st.write("")
+
+st.image(heatmap_image)
 st.write("")
 st.write("")
 
