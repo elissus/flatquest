@@ -23,7 +23,6 @@ geopy
 streamlit
 folium
 streamlit_folium
-re
 json
 
 plotly.express
