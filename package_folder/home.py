@@ -125,7 +125,7 @@ for i in range(0, len(categories), 3):
 # API Request
 
 #df = pd.read_csv("berlin_cleaned.csv")
-df = pd.read_csv(os.path.join(os.path.dirname(__file__), "berlin_merged.csv"))
+df = pd.read_csv(os.path.join(os.path.dirname(__file__), "berlin_final.csv"))
 
 #df = query.query_bq()
 
@@ -141,17 +141,16 @@ if st.button('Submit'):
     all_poi_results = []
 
     # Iterate over each row in the DataFrame
-    #for i in range(len(apartment_df)):
+    for i in range(len(apartment_df)):
         # Get the row-specific data transformed by dax.transform_data
-    row_data = dax.transform_row(apartment_df)
+        row_data = dax.transform_data(apartment_df.iloc[i])
 
-        # Flatten the row data and append it to the all_poi_results list
-    for key, value in row_data.items():
-        all_poi_results.append(value)
+        # Append the entire dictionary, preserving keys and values
+        all_poi_results.append(row_data)
 
     st.session_state['results'] = all_poi_results
 
-    # Create a dictionary to hold the final results for map plotting
+    # Initialize final_results dictionary to store the results
     final_results = {}
 
     # Iterate over the apartment addresses and corresponding POI results
@@ -159,23 +158,36 @@ if st.button('Submit'):
         address = st.session_state['addresses'][i]
         address_results = []
 
-        # Extract the results for the current apartment
+        # Extract the results for the current apartments
         poi_data = st.session_state['results'][i]
 
-        # Iterate over the categories (restaurant, gym, transit)
+        # Define a limit per category (e.g., 30 POIs per category)
+        limit_per_category = 100
+
+        # Iterate over the categories (restaurant, gym, transit, etc.)
         for category, pois in poi_data.items():
-            for poi_list in pois:
-                for poi in poi_list:
-                    # Create a POI dictionary with necessary details
-                    poi_info = {
-                        'name': poi['name'],
-                        'latitude': poi['latitude'],
-                        'longitude': poi['longitude'],
-                        'category': category
-                    }
-                    address_results.append(poi_info)
+            if category in selected_categories:  # Only consider categories that are in selected_categories
+                count = 0  # Track the number of POIs added for this category
+
+                # Iterate through the list of POIs within the category
+                for poi_list in pois:
+                    for poi in poi_list:
+                        if count < limit_per_category:  # Apply the limit per category
+                            poi_info = {
+                                'name': poi['name'],
+                                'latitude': poi['latitude'],
+                                'longitude': poi['longitude'],
+                                'category': category
+                            }
+                            address_results.append(poi_info)
+                            count += 1
+
+            else:
+                # If the category is not in selected_categories, continue to the next category
+                continue
 
         # Store the results for the current apartment
+
         final_results[f'Apartment {i+1}'] = address_results[:50]  # Limit to 20 POIs per apartment
 
     # Create a folium map centered at a default location (Berlin)
@@ -192,7 +204,8 @@ if st.button('Submit'):
             # Add a marker for the apartment address
             folium.Marker(
                 location=address_coords,
-                popup=f"Address: {address}",
+                popup=f'''Address: {address} --
+                The price of this flat is {'below average' if apartment_df.loc[apartment_df['fullAddress'] == address, 'price_category_pred'].values[0] == 'below_average' else 'above average'}''',
                 icon=folium.Icon(color='blue')
             ).add_to(mymap)
 
