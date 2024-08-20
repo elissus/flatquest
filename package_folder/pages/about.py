@@ -53,6 +53,7 @@ with col1:
     st.write("")
     st.write("")
     st.write("")
+    st.write("")
     st.markdown("### Search platforms are not neighborhood-aware")
     st.image(map_path, caption="Screenshot of a popular rental platform")
     st.write("Popular search platforms don't allow users look for apartments close to ameneties that are important to them. This is equivalent to looking for the right apartment in the wrong place")
