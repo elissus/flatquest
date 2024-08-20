@@ -29,6 +29,16 @@ image_path = os.path.join(current_dir, relative_path)
 # Display the header image
 st.image(image_path, use_column_width=True)
 
+# About page content
+about_text = """
+Discover your perfect Berlin home with FlatQuest, the only rental platform that goes beyond the basics. Whether you’re searching for a cozy apartment with a gym around the corner or a family-friendly home near top schools, FlatQuest helps you explore Berlin’s hidden gems. We combine traditional search criteria with personalized filters based on the amenities and lifestyle features that matter most to you, making it easier than ever to find a place you’ll love in neighborhoods you never knew existed.
+"""
+
+# Streamlit app
+st.title("Welcome to FlatQuest: Your Epic Journey to the Perfect Apartment!")
+st.markdown(f'<p class="header-text">{about_text}</p>', unsafe_allow_html=True)
+st.markdown("<hr>", unsafe_allow_html=True)
+
 # Title and description
 st.title("Find an apartment")
 
@@ -177,8 +187,8 @@ if st.button('Submit'):
                 continue
 
         # Store the results for the current apartment
-        final_results[f'Apartment {i+1}'] = address_results[:100]  # Limit to 100 POIs per apartment
 
+        final_results[f'Apartment {i+1}'] = address_results[:50]  # Limit to 20 POIs per apartment
 
     # Create a folium map centered at a default location (Berlin)
     mymap = folium.Map(location=[52.5200, 13.4050], zoom_start=12)
